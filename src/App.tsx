@@ -1,24 +1,35 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import { useEffect, useState } from "react";
+import UsersList from "./components/UsersList";
 
 function App() {
+  const [users, setUsers] = useState([]); 
+
+  useEffect(() => {
+    const storedUsers = localStorage.getItem("users");
+    console.log(storedUsers);
+    
+    if (storedUsers && storedUsers.length > 0) {
+      setUsers(JSON.parse(storedUsers));
+    } else {
+      fetch("https://dummyjson.com/users?limit=10")
+        .then((res) => res.json())
+        .then((data) => {
+          setUsers(data.users);
+          localStorage.setItem("users", JSON.stringify(data.users)); // зберігаємо користувачів у localStorage
+        })
+        .catch((error) => {
+          console.error("Error fetching users:", error);
+        });
+    }
+  }, []);
+  
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className="w-full min-h-[100vh] flex items-center justify-center">
+      <UsersList
+        users={users}
+        setUsers={setUsers}
+      />
     </div>
   );
 }
