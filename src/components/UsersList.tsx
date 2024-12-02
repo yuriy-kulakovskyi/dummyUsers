@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState } from "react";
 import {
   DndContext,
   DragOverlay,
@@ -9,7 +9,7 @@ import {
   DragEndEvent,
   TouchSensor,
   closestCenter
-} from "@dnd-kit/core"
+} from "@dnd-kit/core";
 import {
   arrayMove,
   SortableContext,
@@ -24,47 +24,35 @@ interface UsersListProps {
   setUsers(prev?: any): void;
 }
 
-const UsersList: React.FC<UsersListProps> = ({
-  users,
-  setUsers
-}) => {
-
-  const [activeItem, setActiveItem] = useState<User>()
+const UsersList: React.FC<UsersListProps> = ({ users, setUsers }) => {
+  const [activeItem, setActiveItem] = useState<User | undefined>();
 
   const sensors = useSensors(useSensor(PointerSensor), useSensor(TouchSensor));
 
-
   const handleDragStart = (event: DragStartEvent) => {
-    const { active } = event
-    setActiveItem(users.find((item) => item.id === active.id))
-  }
+    const { active } = event;
+    setActiveItem(users.find((item) => item.id === active.id));
+  };
 
   const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event
-    if (!over) return
+    const { active, over } = event;
+    if (!over) return;
 
-    const activeItem = users.find((item) => item.id === active.id)
-    const overItem = users.find((item) => item.id === over.id)
-
-    if (!activeItem || !overItem) {
-      return
-    }
-
-    const activeIndex = users.findIndex((item) => item.id === active.id)
-    const overIndex = users.findIndex((item) => item.id === over.id)
+    const activeIndex = users.findIndex((item) => item.id === active.id);
+    const overIndex = users.findIndex((item) => item.id === over.id);
 
     if (activeIndex !== overIndex) {
-      setUsers((prev: any) => arrayMove<User>(prev, activeIndex, overIndex))
+      setUsers((prev: User[]) => {
+        const newUsers = arrayMove(prev, activeIndex, overIndex);
+        localStorage.setItem("users", JSON.stringify(newUsers)); // Зберігаємо новий порядок
+        return newUsers;
+      });
     }
     setActiveItem(undefined);
-  }
+  };
 
   const handleDragCancel = () => {
-    setActiveItem(undefined)
-  }
-
-  const handleButtonClick = () => {
-    localStorage.setItem("users", JSON.stringify(users));
+    setActiveItem(undefined);
   };
 
   return (
@@ -77,14 +65,6 @@ const UsersList: React.FC<UsersListProps> = ({
     >
       <SortableContext items={users} strategy={rectSortingStrategy}>
         <div className="flex flex-col gap-[10px] p-[20px]">
-
-          <button
-            className="p-[20px] bg-green-400 text-white rounded-md hover:opacity-80"
-            onClick={handleButtonClick}
-          >
-            Save this order
-          </button>
-
           <ul className="min-w-[500px] flex flex-col justify-start items-start gap-[10px] p-[20px]">
             {users.map((item) => (
               <SortableItem key={item.id} item={item} />
@@ -96,7 +76,7 @@ const UsersList: React.FC<UsersListProps> = ({
         {activeItem ? <Item item={activeItem} isDragging /> : null}
       </DragOverlay>
     </DndContext>
-  )
-}
+  );
+};
 
 export default UsersList;
